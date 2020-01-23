@@ -54,7 +54,11 @@ async function init() {
     }
 
     else if (action === "View All Employees By Department") {
-
+        // connection.query("SELECT * FROM employee ORDER BY ", function(err, res){
+        //     if (err) console.log(err);
+        //     console.table(res);
+        //     init();
+        // })
     }
 
     else if (action === "View All Employees By Manager") {
@@ -62,6 +66,7 @@ async function init() {
     }
 
     else if (action === "Add Employee") {
+        // Inquire the basic employee information
         var {firstName} = await inquirer.prompt([
             {
                 type: "input",
@@ -76,6 +81,42 @@ async function init() {
                 message: "What is the employee's last name?",
             }
         ])
+        var {role} = await inquirer.prompt([
+            {
+                type: "input",
+                name: "role",
+                message: "What is the employee's role?",
+            }
+            
+        ])
+        var {manager} = await inquirer.prompt([
+            {
+                type: "input",
+                name: "manager",
+                message: "Who is the employee's manager?",
+            }
+        ])
+
+        // Deconstruct the inputted manager's name into first and last names
+        var nameArray = manager.split()
+        var managerFirst = nameArray[0]
+        var managerLast = nameArray[1]
+
+        // Find the foreign keys for role and manager using the inputting strings
+        var xxx = await connection.query("SELECT role_id FROM role WHERE ?",
+        {
+            title: role
+        },
+        function(err, res){
+            if (err) throw err;
+            // console.log(res[0].role_id)
+        }
+        )
+
+        console.log(xxx)
+
+        //Input all the data into the employee table
+
         connection.query("INSERT INTO employee SET ?",
         {
             first_name: firstName,
