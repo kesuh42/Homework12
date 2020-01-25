@@ -36,7 +36,7 @@ async function init() {
     ])
 
     if (action === "View All Employees") {
-        connection.query("SELECT * FROM employee", function(err, res){
+        connection.query("SELECT * from employee a INNER JOIN role b on a.role_id = b.role_id", function(err, res){
             if (err) console.log(err);
             console.table(res);
             init();
@@ -92,39 +92,52 @@ async function init() {
         ])
 
         // Deconstruct the inputted manager's name into first and last names
-        var nameArray = manager.split()
+        var nameArray = manager.split(" ")
         var managerFirst = nameArray[0]
         var managerLast = nameArray[1]
 
+
         // Find the foreign keys for role and manager using the inputting strings
-        var xxx = await connection.query("SELECT role_id FROM role WHERE ?",
-        {
-            title: role
-        },
+        connection.query("SELECT role_id FROM role WHERE ?? = ?",
+        [
+            "title",
+            role
+        ],
         function(err, res){
-            if (err) throw err;
-            // console.log(res[0].role_id)
-            return res
+            if (err) console.log(err);
+            
+
+
+            var roleID = res[0].role_id
+            connection.query(`SELECT employee_id FROM employee WHERE ?? = ? and ?? = ?`,
+            [
+                "first_name",
+                managerFirst,
+                "last_name",
+                managerLast
+            ],
+            function(err, res){
+                if (err) console.log(err)
+                var managerID = res[0].employee_id
+                insertData(roleID, managerID)
+            })
         }
         )
 
-        console.log(xxx)
-
-        //Input all the data into the employee table
-
-        connection.query("INSERT INTO employee SET ?",
-        {
-            first_name: firstName,
-            last_name: lastName,
-            //PLACEHOLDER, ROLE ID
-            role_id: 1,
-            //PLACEHOLDER, FIND MANAGER ID
-            manager_id: 1
-        },
-        function(err, res){
-            init()
-        })
-        console.log("Employee has been added")
+        //Function to input all the data into the employee table
+        function insertData(roleID, managerID) {
+            connection.query("INSERT INTO employee SET ?",
+            {
+                first_name: firstName,
+                last_name: lastName,
+                role_id: roleID,
+                manager_id: managerID
+            },
+            function(err, res){
+                init()
+            })
+            console.log("Employee has been added")
+        }
     }
 
     else if (action === "Add Department") {
