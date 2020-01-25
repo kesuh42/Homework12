@@ -36,7 +36,7 @@ async function init() {
     ])
 
     if (action === "View All Employees") {
-        connection.query("SELECT * from employee a INNER JOIN role b on a.role_id = b.role_id", function(err, res){
+        connection.query("SELECT a.employee_id, a.first_name, a.last_name, title, salary, c.name, d.first_name as manager_first_name, d.last_name as manager_last_name from employee a INNER JOIN role b on a.role_id = b.role_id INNER JOIN department c on b.department_id = c.department_id LEFT JOIN employee d ON a.manager_id = d.employee_id", function(err, res){
             if (err) console.log(err);
             console.table(res);
             init();
@@ -52,7 +52,7 @@ async function init() {
     }
 
     else if (action === "View Roles") {
-        connection.query("SELECT * FROM role a INNER JOIN department b on a.department_id = b.department_id", function(err, res){
+        connection.query("SELECT a.role_id, a.title, a.salary, b.name as department_name FROM role a INNER JOIN department b on a.department_id = b.department_id", function(err, res){
             if (err) console.log(err);
             console.table(res);
             init();
