@@ -32,10 +32,10 @@ CREATE TABLE employee(
 -- Insert some initial values
 
 INSERT INTO department(name)
-VALUES ("Tech Support");
+VALUES ("Management");
 
 INSERT INTO department(name)
-VALUES ("Management");
+VALUES ("Tech Support");
 
 INSERT INTO role(title, salary, department_id)
 VALUES ("Manager", "100000", 1);

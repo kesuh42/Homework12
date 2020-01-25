@@ -52,7 +52,7 @@ async function init() {
     }
 
     else if (action === "View Roles") {
-        connection.query("SELECT * FROM role", function(err, res){
+        connection.query("SELECT * FROM role a INNER JOIN department b on a.department_id = b.department_id", function(err, res){
             if (err) console.log(err);
             console.table(res);
             init();
@@ -87,10 +87,26 @@ async function init() {
             {
                 type: "input",
                 name: "manager",
-                message: "Who is the employee's manager?",
+                message: "Who is the employee's manager? If none, leave blank",
             }
         ])
 
+        if (manager === "") {
+            connection.query("SELECT role_id FROM role WHERE ?? = ?",
+            [
+                "title",
+                role
+            ],
+            function(err, res){
+                if (err) console.log(err);
+        
+                var roleID = res[0].role_id
+                insertEmployee(roleID, null)
+            }
+            )
+        }
+
+        else {
         // Deconstruct the inputted manager's name into first and last names
         var nameArray = manager.split(" ")
         var managerFirst = nameArray[0]
@@ -105,8 +121,6 @@ async function init() {
         ],
         function(err, res){
             if (err) console.log(err);
-            
-
 
             var roleID = res[0].role_id
             connection.query(`SELECT employee_id FROM employee WHERE ?? = ? and ?? = ?`,
@@ -119,13 +133,14 @@ async function init() {
             function(err, res){
                 if (err) console.log(err)
                 var managerID = res[0].employee_id
-                insertData(roleID, managerID)
+                insertEmployee(roleID, managerID)
             })
         }
         )
 
+    }
         //Function to input all the data into the employee table
-        function insertData(roleID, managerID) {
+        function insertEmployee(roleID, managerID) {
             connection.query("INSERT INTO employee SET ?",
             {
                 first_name: firstName,
@@ -169,7 +184,6 @@ async function init() {
                 message: "What is the new role's title?",
             }
         ])
-
         var {salary} = await inquirer.prompt([
             {
                 type: "input",
@@ -177,21 +191,42 @@ async function init() {
                 message: "What is the new role's salary?",
             }
         ])
+        var {department} = await inquirer.prompt([
+            {
+                type: "input",
+                name: "department",
+                message: "To what department does this new role belong?",
+            }
+        ])
+
+        //Query the department ID
+        connection.query("SELECT department_id FROM department WHERE ?? = ?",
+        [
+            "name",
+            department
+        ],
+        function(err, res){
+            if (err) throw err;
+            var departmentID = res[0].department_id
+            insertRole(title, salary, departmentID)
+        })
 
         //Input into the role table
-        connection.query("INSERT INTO role SET ?",
-        {
-            title: title,
-            salary: salary,
-            //PLACEHOLDER, FIND DEPARTMENT ID
-            department_ID: 1
-        },
-        function(err, res){
-            init()
-        })
+        function insertRole(title, salary, departmentID){
+            connection.query("INSERT INTO role SET ?",
+            {
+                title: title,
+                salary: salary,
+                department_ID: departmentID
+            },
+            function(err, res){
+                init()
+            })
+        }
     }
 
     else if (action === "Remove Employee") {
+        //Inquire the name of the employee to be removed
         var {firstName} = await inquirer.prompt([
             {
                 type: "input",
@@ -206,6 +241,7 @@ async function init() {
                 message: "What is the employee's last name?",
             }
         ])
+        //Delete that employee, or do nothing if the employee is not found
         connection.query("DELETE FROM employee WHERE ? and ?", 
         [{
             first_name: firstName,
@@ -251,21 +287,35 @@ async function init() {
                 message: "What is this employee's new role?",
             }
         ])
-        connection.query("UPDATE employee SET ? WHERE ? and ?", [
-            {
-                //PLACEHOLDER FIND ROLE ID
-                role_id: 2
-            },
-            {
-                first_name: firstName
-            },
-            {
-                last_name: lastName
-            }
-        ]),
-        function(err, res) {
+
+        connection.query("SELECT role_id FROM role WHERE ?? = ?",
+        [
+            "title",
+            newRole
+        ],
+        function(err, res){
             if (err) throw err;
-            console.log("Employee Updated");
+            var roleID = res[0].role_id
+            updateEmployee(roleID)
+        })
+
+        function updateEmployee(roleID){
+            connection.query("UPDATE employee SET ? WHERE ? and ?", [
+                {
+                    role_id: roleID
+                },
+                {
+                    first_name: firstName
+                },
+                {
+                    last_name: lastName
+                }
+            ],
+            function(err, res) {
+                if (err) throw err;
+                console.log("Employee Updated");
+                init()
+            })
         }
     }
 }
