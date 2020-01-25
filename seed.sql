@@ -29,4 +29,21 @@ CREATE TABLE employee(
     PRIMARY KEY (employee_id)
 );
 
+-- Insert some initial values
 
+INSERT INTO department(name)
+VALUES ("Tech Support");
+
+INSERT INTO department(name)
+VALUES ("Management");
+
+INSERT INTO role(title, salary, department_id)
+VALUES ("Manager", "100000", 1);
+
+INSERT INTO role(title, salary, department_id)
+VALUES ("Coder", "100", 2);
+
+-- I'm the boss
+
+INSERT INTO employee(first_name, last_name, role_id)
+VALUES ("Kevin", "Suh", 1);
